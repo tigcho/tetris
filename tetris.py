@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 import curses
 import random
-import time
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List
 
 @dataclass
 class Piece:
@@ -14,14 +13,12 @@ class Piece:
     color: int
 
 class TetrisGame:
-    # Game constants
     BOARD_WIDTH = 10
     BOARD_HEIGHT = 20
     TICK_RATE = 0.5
     SCORE_PER_LINE = 100
     LEVEL_UP_LINES = 10
 
-    # Color pairs (will be initialized in setup_colors)
     CYAN = 1    # I piece
     YELLOW = 2  # O piece
     PURPLE = 3  # T piece
@@ -31,7 +28,6 @@ class TetrisGame:
     WHITE = 7   # L piece
     GHOST = 8   # Ghost piece
 
-    # Tetromino shapes and their colors
     PIECES = {
         'I': {'shape': [['■', '■', '■', '■']], 'color': CYAN},
         'O': {'shape': [['■', '■'],
@@ -60,7 +56,6 @@ class TetrisGame:
 
     @staticmethod
     def setup_colors():
-        # Initialize color pairs
         curses.init_pair(TetrisGame.CYAN, curses.COLOR_CYAN, curses.COLOR_BLACK)
         curses.init_pair(TetrisGame.YELLOW, curses.COLOR_YELLOW, curses.COLOR_BLACK)
         curses.init_pair(TetrisGame.PURPLE, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
@@ -71,7 +66,6 @@ class TetrisGame:
         curses.init_pair(TetrisGame.GHOST, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
     def load_high_score(self) -> int:
-        """Load the high score from a file."""
         try:
             with open('.tetris_high_score', 'r') as f:
                 return int(f.read().strip())
@@ -79,12 +73,10 @@ class TetrisGame:
             return 0
 
     def save_high_score(self):
-        """Save the high score to a file."""
         with open('.tetris_high_score', 'w') as f:
             f.write(str(max(self.score, self.high_score)))
 
     def spawn_piece(self):
-        """Create a new piece at the top of the board."""
         piece_type = random.choice(list(self.PIECES.keys()))
         piece_data = self.PIECES[piece_type]
         x = self.BOARD_WIDTH // 2 - len(piece_data['shape'][0]) // 2
@@ -92,7 +84,6 @@ class TetrisGame:
         self.update_ghost_piece()
 
     def update_ghost_piece(self):
-        """Update the ghost piece position."""
         if not self.current_piece:
             return
         original_y = self.current_piece.y
@@ -102,7 +93,6 @@ class TetrisGame:
         self.current_piece.y = original_y
 
     def check_collision(self) -> bool:
-        """Check if the current piece collides with the board or other pieces."""
         if not self.current_piece:
             return False
         for y, row in enumerate(self.current_piece.shape):
@@ -117,12 +107,9 @@ class TetrisGame:
         return False
 
     def rotate_piece(self):
-        """Rotate the current piece clockwise."""
         if not self.current_piece:
             return
-        # Save old position and shape
         old_shape = self.current_piece.shape
-        # Rotate the piece (transpose and reverse rows for clockwise rotation)
         self.current_piece.shape = [list(row) for row in zip(*self.current_piece.shape[::-1])]
         if self.check_collision():
             self.current_piece.shape = old_shape
@@ -130,7 +117,6 @@ class TetrisGame:
             self.update_ghost_piece()
 
     def move_piece(self, dx: int, dy: int) -> bool:
-        """Move the current piece by the given delta x and y."""
         if not self.current_piece:
             return False
         self.current_piece.x += dx
@@ -143,7 +129,6 @@ class TetrisGame:
         return True
 
     def hard_drop(self):
-        """Drop the current piece to the bottom instantly."""
         if not self.current_piece:
             return
         while self.move_piece(0, 1):
@@ -151,7 +136,6 @@ class TetrisGame:
         self.lock_piece()
 
     def lock_piece(self):
-        """Lock the current piece in place on the board."""
         if not self.current_piece:
             return
         for y, row in enumerate(self.current_piece.shape):
@@ -169,7 +153,6 @@ class TetrisGame:
         self.spawn_piece()
 
     def clear_lines(self):
-        """Clear any completed lines and update the score."""
         lines_to_clear = []
         for y in range(self.BOARD_HEIGHT):
             if all(cell['char'] != ' ' for cell in self.board[y]):

@@ -4,23 +4,19 @@ import time
 from tetris import TetrisGame
 
 def main(stdscr):
-    # Set up curses
     curses.curs_set(0)  # Hide cursor
     curses.start_color()
     curses.use_default_colors()
     stdscr.nodelay(1)   # Non-blocking input
     
-    # Initialize game and colors
     game = TetrisGame()
     game.setup_colors()
     game.spawn_piece()
     last_fall = time.time()
     
     while not game.game_over:
-        # Clear screen
         stdscr.clear()
         
-        # Handle input
         try:
             key = stdscr.getch()
             if key == ord('q'):
@@ -38,14 +34,12 @@ def main(stdscr):
         except curses.error:
             pass
 
-        # Automatic falling
         current_time = time.time()
         if current_time - last_fall > game.TICK_RATE / game.level:
             if not game.move_piece(0, 1):
                 game.lock_piece()
             last_fall = current_time
 
-        # Draw game board
         for y in range(game.BOARD_HEIGHT):
             for x in range(game.BOARD_WIDTH):
                 cell = game.board[y][x]
@@ -55,9 +49,7 @@ def main(stdscr):
                     stdscr.addstr(y + 1, x * 2 + 1, cell['char'], 
                                 curses.color_pair(cell['color']))
 
-        # Draw current piece
         if game.current_piece:
-            # Draw ghost piece
             for y, row in enumerate(game.current_piece.shape):
                 for x, cell in enumerate(row):
                     if cell != ' ':
@@ -67,7 +59,6 @@ def main(stdscr):
                             stdscr.addstr(ghost_y + 1, ghost_x * 2 + 1, '□', 
                                         curses.color_pair(game.GHOST) | curses.A_DIM)
 
-            # Draw actual piece
             for y, row in enumerate(game.current_piece.shape):
                 for x, cell in enumerate(row):
                     if cell != ' ':
@@ -77,12 +68,10 @@ def main(stdscr):
                             stdscr.addstr(piece_y + 1, piece_x * 2 + 1, '■',
                                         curses.color_pair(game.current_piece.color) | curses.A_BOLD)
 
-        # Draw score and level
         stdscr.addstr(0, game.BOARD_WIDTH * 2 + 5, f"Score: {game.score}")
         stdscr.addstr(1, game.BOARD_WIDTH * 2 + 5, f"Level: {game.level}")
         stdscr.addstr(2, game.BOARD_WIDTH * 2 + 5, f"High Score: {game.high_score}")
         
-        # Add color legend
         stdscr.addstr(4, game.BOARD_WIDTH * 2 + 5, "Pieces:")
         stdscr.addstr(5, game.BOARD_WIDTH * 2 + 5, "■ I", curses.color_pair(game.CYAN) | curses.A_BOLD)
         stdscr.addstr(6, game.BOARD_WIDTH * 2 + 5, "■ O", curses.color_pair(game.YELLOW) | curses.A_BOLD)
@@ -92,13 +81,10 @@ def main(stdscr):
         stdscr.addstr(10, game.BOARD_WIDTH * 2 + 5, "■ J", curses.color_pair(game.BLUE) | curses.A_BOLD)
         stdscr.addstr(11, game.BOARD_WIDTH * 2 + 5, "■ L", curses.color_pair(game.WHITE) | curses.A_BOLD)
         
-        # Refresh screen
         stdscr.refresh()
         
-        # Small delay to prevent CPU hogging
         time.sleep(0.01)
 
-    # Game over
     stdscr.nodelay(0)
     stdscr.addstr(game.BOARD_HEIGHT // 2, game.BOARD_WIDTH + 2, "GAME OVER!")
     stdscr.addstr(game.BOARD_HEIGHT // 2 + 1, game.BOARD_WIDTH + 2, f"Final Score: {game.score}")
@@ -106,7 +92,6 @@ def main(stdscr):
     stdscr.refresh()
     stdscr.getch()
     
-    # Save high score
     game.save_high_score()
 
 if __name__ == "__main__":
